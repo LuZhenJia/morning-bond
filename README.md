@@ -7,6 +7,9 @@
 - **沒有填 `js/config.js` 時就是本機模式**：行為與單檔版相同，資料只存在瀏覽器。
 - 前端只放 **Project URL** 與 **Publishable key**；放了 Secret / service_role key 會被偵測並自動停用雲端功能。
 
+> **線上版本**：<https://luzhenjia.github.io/morning-bond/>（GitHub Actions 自動部署；雲端存檔使用 Supabase 專案 `morning-bond`）。
+> 部署設定、線上實測結果與需要手動處理的事項見 [`DEPLOYMENT.md`](DEPLOYMENT.md)。
+
 ---
 
 ## 目錄
@@ -104,6 +107,7 @@ Morning-Bond/
       [functions.recover-save]
       verify_jwt = false
       ```
+   - **不想裝 CLI**：也可以全部在 Dashboard 完成（本專案的正式部署就是這樣做的）——Edge Functions → Secrets 新增上面兩個（或三個）Secret；Edge Functions → Deploy a new function → Via Editor，建立 `index.ts` 與 `handler.ts` 兩個檔案、貼上 `supabase/functions/recover-save/` 裡對應的內容，Function name 填 `recover-save` → Deploy；部署後到函式的 Settings 關閉 **Verify JWT with legacy secret** → Save changes。
    4. 函式需要的 `SUPABASE_URL`、`SUPABASE_SECRET_KEYS`（或舊版 `SUPABASE_SERVICE_ROLE_KEY`）由 Supabase 自動提供給 Edge Function，**不要**放到前端或 GitHub。
    5. `RECOVERY_CODE_PEPPER` 設定後不要再改：改了之後，所有還沒用掉的復原代碼都會失效（伺服器只存代碼的 HMAC 雜湊）。
 
@@ -151,7 +155,8 @@ export const CONFIG = Object.freeze({
    git push -u origin main
    ```
    用網頁上傳也可以，但要確認隱藏檔 `.nojekyll` 也有上傳。`tests/`、`tools/` 不會被遊戲載入，要不要上傳都可以。
-3. Settings → Pages → Build and deployment → Source 選 **Deploy from a branch** → Branch 選 **main**、資料夾 **/ (root)** → Save。
+3. Settings → Pages → Build and deployment → Source 選 **GitHub Actions**。本專案附的 `.github/workflows/deploy.yml` 會在每次推送到 `main` 時自動部署，而且只發布遊戲需要的檔案（`index.html`、`.nojekyll`、`css/`、`js/`、`assets/`），部署前會掃描是否誤放 Secret key。
+   （不想用 Actions 的話，也可以改選 **Deploy from a branch** → Branch **main**、資料夾 **/ (root)**，但這樣 `tests/`、`supabase/` 等檔案也會一起公開在網站上。）
 4. 等 1～2 分鐘，網址是 `https://<你的帳號>.github.io/Morning-Bond/`。所有路徑都是相對路徑，放在子路徑下可以正常運作。
 5. 回到第 2 節第 6 步，把 `ALLOWED_ORIGINS` 設成 `https://<你的帳號>.github.io`。
 6. 之後更新：推送新的 commit，Pages 會自動重新部署。GitHub Pages 會快取幾分鐘，更新後若畫面怪怪的，請按 Ctrl+Shift+R（Mac：Cmd+Shift+R）強制重新整理。
@@ -267,7 +272,8 @@ RLS 只能保證**資料所有權**（你不能碰別人的資料），**不能�
 ## 9. 測試清單與結果
 
 測試環境：Linux、Chromium（Playwright）、PostgreSQL 16、Node.js 22。最後一次完整執行（`bash tests/run-all.sh`，含與 v1.1 單檔版的比對）：2026-11-11，全部通過。
-**雲端相關測試使用「本機 Supabase 模擬器」**：資料庫是真的 PostgreSQL，直接執行本專案的 `schema.sql`、`policies.sql`（RLS、GRANT、觸發器、RPC 都是真的），HTTP 層（Auth／PostgREST／Storage／Functions）由 `tests/emulator/server.mjs` 模擬；前端用的是真正的 supabase-js 2.119.0；Edge Function 的邏輯（`handler.ts`）直接在模擬器裡執行。**沒有在真正的 Supabase 雲端專案、Deno 執行環境與真正的 GitHub Pages 上測試**（見第 11 節）。
+**雲端相關測試使用「本機 Supabase 模擬器」**：資料庫是真的 PostgreSQL，直接執行本專案的 `schema.sql`、`policies.sql`（RLS、GRANT、觸發器、RPC 都是真的），HTTP 層（Auth／PostgREST／Storage／Functions）由 `tests/emulator/server.mjs` 模擬；前端用的是真正的 supabase-js 2.119.0；Edge Function 的邏輯（`handler.ts`）直接在模擬器裡執行。
+本節是本機模擬器的結果；**部署到真正的 Supabase 專案與 GitHub Pages 之後的線上實測結果見 [`DEPLOYMENT.md`](DEPLOYMENT.md)**。
 
 ### 需求的 17 項測試
 
@@ -335,10 +341,9 @@ python3 -m http.server 8080
 
 ## 11. 尚未完成／尚未驗證的項目
 
-- **沒有在真正的 Supabase 雲端專案上測試**：SQL 與 RLS 在真的 PostgreSQL 上測過，但 Auth／PostgREST／Storage／Edge Functions 是模擬器。第一次部署後，請照第 9 節的情境實際操作一次（特別是匿名登入、照片上傳、復原代碼）。
-- **Edge Function 的 Deno 進入點（`index.ts`）沒有在 Deno／Supabase 上執行過**；邏輯本體 `handler.ts` 已在模擬器中以 Node 測試。
-- **沒有在真正的 GitHub Pages 上測試**；已用相同的子路徑（`/Morning-Bond/`）在本機 http 伺服器測試。
-- **只測試 Chromium**；Safari、Firefox、手機瀏覽器沒有自動化測試（多分頁鎖使用 Web Locks，不支援的瀏覽器會退回「不鎖定」）。
+- **線上實測（2026-11-11）已完成的部分**：真正的 Supabase 專案＋GitHub Pages 上的匿名登入、存檔建立／更新／重新整理還原、復原代碼（Edge Function 在 Supabase 上執行）、RLS、Storage 權限、CORS、刪除雲端存檔，詳見 [`DEPLOYMENT.md`](DEPLOYMENT.md)。
+- **線上尚未實測**：遊戲內「上傳照片」介面（Storage 權限已用 API 實測）、真正的斷網與恢復、用實體的第二台裝置（手機）接回存檔（線上是用第二個匿名身分模擬另一台裝置）。
+- **只測試 Chromium 系瀏覽器**；Safari、Firefox、手機瀏覽器沒有自動化測試（多分頁鎖使用 Web Locks，不支援的瀏覽器會退回「不鎖定」）。
 - **CAPTCHA 尚未整合**：Supabase 若開啟 CAPTCHA，匿名登入會失敗。
 - **伺服器端遊戲規則驗證尚未實作**：只有第 7 節的提案。
 - **裝置管理介面尚未實作**：雲端面板只顯示連結了幾台裝置，還不能從介面移除某一台裝置。
@@ -352,4 +357,5 @@ python3 -m http.server 8080
 - **更新 supabase-js**：`cd tools/vendor && npm install && npm run build`（先修改 `package.json` 的版本）→ 把 `js/supabase.js` 的 `LIB_URL` 改成新檔名 → 刪除舊檔 → 跑一次測試。
 - **修改資料庫**：直接修改 `schema.sql`／`policies.sql` 後重新執行（兩個檔案都可以重複執行）。
 - **清理舊匿名帳號**：`select public.mb_cleanup_stale_anonymous(90);`（SQL Editor，管理者身分）。
+- **Supabase Free 方案會在約 7 天沒有活動後自動暫停專案**：暫停期間遊戲照常在本機遊玩、進度先存在瀏覽器；到 Supabase 後台按 **Resume project** 恢復後，會自動補傳。
 - **除錯**：瀏覽器主控台輸入 `__cloud` 可看同步狀態（`__cloud.status`、`__cloud.meta`）；`__cg.state` 是遊戲狀態。

@@ -1,0 +1,13 @@
+{
+  "name": "morning-bond-vendor",
+  "private": true,
+  "type": "module",
+  "description": "重新打包 js/vendor/ 裡的 supabase-js（只有要更新版本時才需要；部署遊戲本身不需要 Node.js）",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "2.119.0",
+    "esbuild": "0.28.2"
+  }
+}

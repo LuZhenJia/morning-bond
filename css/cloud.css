@@ -1,0 +1,82 @@
+/* =====================================================================
+   cloud.css — 雲端存檔的狀態提示與對話框（v2.0 新增）
+   只新增雲端相關元件；沿用 style.css 的色彩變數、按鈕與對話框樣式，不覆寫原本的任何規則。
+   沒有設定 Supabase（本機模式）時，這些元件都不會出現。
+   ===================================================================== */
+
+/* ---- 狀態膠囊（左下角） ---- */
+.cloud-pill {
+  position: fixed; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 45;
+  display: inline-flex; align-items: center; gap: 6px; max-width: min(78vw, 360px);
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card);
+  color: var(--ink2); font-size: .8rem; font-weight: 600; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  box-shadow: var(--shadow); transition: background .2s, border-color .2s, color .2s;
+}
+.cloud-pill[hidden] { display: none; }
+.cloud-pill .cp-t { overflow: hidden; text-overflow: ellipsis; }
+.cloud-pill:hover { background: #fff8ef; }
+.cloud-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cloud-pill.st-synced { color: var(--ok); border-color: #cfe9da; }
+.cloud-pill.st-syncing, .cloud-pill.st-connecting { color: var(--dad); border-color: #d3dcec; }
+.cloud-pill.st-offline { color: var(--ink2); background: var(--bg2); }
+.cloud-pill.st-error, .cloud-pill.st-conflict { color: #a8423f; border-color: #f0c4c1; background: #fdf1f0; }
+.cloud-pill.st-suspended { color: var(--muted); }
+.cloud-pill.dirty::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--late); flex: none; }
+
+/* ---- 雲端對話框（疊在遊戲對話框上面、提示訊息下面） ---- */
+.cloud-modal { z-index: 55; }
+.cloud-card h2 { font-size: 1.15rem; }
+.cloud-card h4 { margin: 14px 0 2px; }
+.cloud-card p { margin: .4em 0; }
+
+.cl-status { display: flex; flex-direction: column; gap: 2px; background: var(--bg2); border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
+.cl-status b { font-size: .95rem; }
+.cl-status span { color: var(--ink2); font-size: .82rem; }
+.cl-status p { margin: 4px 0 0; color: var(--ink2); font-size: .82rem; }
+.cl-status .cl-pending { color: var(--late); font-weight: 600; }
+
+.cl-meta { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 6px 0 0; font-size: .86rem; }
+.cl-meta dt { color: var(--ink2); }
+.cl-meta dd { margin: 0; font-weight: 600; }
+.cl-actions { margin-top: 6px; }
+
+.cl-code {
+  margin: 12px 0; padding: 12px 10px; border: 2px dashed var(--gold); border-radius: 14px; background: #fff8e6;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 1.25rem; font-weight: 700;
+  letter-spacing: .08em; text-align: center; color: var(--ink); user-select: all; word-break: break-all;
+}
+.cl-code-input, #cl-del-input {
+  display: block; width: 100%; margin: 8px 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff;
+}
+.cl-code-input { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 1.05rem; letter-spacing: .06em; text-transform: uppercase; }
+.cl-code-input:focus, #cl-del-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.cl-err { color: #a8423f; font-size: .86rem; font-weight: 600; }
+.cl-err[hidden] { display: none; }
+
+.cl-snaps { list-style: none; padding: 0; margin: 8px 0; max-height: 52vh; overflow: auto; }
+.cl-snaps li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 2px; border-bottom: 1px dashed var(--line); }
+.cl-snaps li div { display: flex; flex-direction: column; }
+.cl-snaps li span { color: var(--ink2); font-size: .82rem; }
+
+.cl-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.cl-side { background: var(--bg2); border-radius: 14px; padding: 10px 12px; }
+.cl-side h4 { margin: 0 0 4px; }
+.cl-side ul { margin: 0; padding-left: 1.1em; font-size: .86rem; }
+.cl-actions-wrap { flex-wrap: wrap; }
+
+.cl-gate { text-align: center; padding: 6px 0; }
+.cl-gate .actions { justify-content: center; }
+.cl-gate [hidden] { display: none; }
+
+/* ---- 歡迎畫面上的「已經在別的裝置玩過？」 ---- */
+.cl-welcome { margin-top: 16px; padding: 10px 14px; border: 1px dashed var(--line); border-radius: 14px; background: #fffaf3; text-align: left; font-size: .88rem; }
+.cl-welcome b { display: block; margin-bottom: 2px; }
+.cl-welcome span { color: var(--ink2); }
+
+@media (max-width: 560px) {
+  .cloud-pill { left: 8px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); font-size: .74rem; padding: 4px 9px; gap: 4px; }
+  .cloud-pill .cp-x { display: none; } /* 手機只顯示圖示與狀態，時間等細節在面板裡 */
+  .cl-compare { grid-template-columns: 1fr; }
+  .cl-code { font-size: 1.05rem; letter-spacing: .04em; }
+}
+@media print { .cloud-pill, .cloud-modal { display: none !important; } }

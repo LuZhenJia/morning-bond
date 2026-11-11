@@ -1,0 +1,24 @@
+# 相依套件、建置與暫存（部署不需要）
+node_modules/
+dist/
+_site/
+.cache/
+*.log
+tests/node_modules/
+tools/vendor/node_modules/
+__pycache__/
+*.pyc
+tests/e2e/shots/
+.DS_Store
+Thumbs.db
+
+# Supabase CLI 本機資料（supabase init / start 會產生）
+supabase/.branches/
+supabase/.temp/
+supabase/functions/.env
+.env
+.env.*
+!.env.example
+
+# 匯出的存檔備份不要誤傳到公開的 repository
+*存檔*.json

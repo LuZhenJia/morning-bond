@@ -1,0 +1,16 @@
+{
+  "name": "morning-bond-tests",
+  "private": true,
+  "type": "module",
+  "description": "晨光羈絆雲端存檔的本機測試工具（模擬 Supabase：PostgreSQL + Auth/REST/Storage/Functions 模擬器）。部署遊戲不需要這個資料夾。",
+  "scripts": {
+    "emulator": "node --experimental-strip-types emulator/server.mjs",
+    "test:sql": "node sql/sql-tests.mjs",
+    "test:edge": "node --experimental-strip-types edge/recover-save.test.mjs",
+    "test:all": "bash run-all.sh"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.119.0",
+    "pg": "8.16.3"
+  }
+}

@@ -1,0 +1,56 @@
+# 推送到 main 時自動部署 GitHub Pages（純靜態網站，不需要建置）
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: 準備網站檔案（只發布遊戲需要的檔案）
+        run: |
+          mkdir -p _site
+          cp index.html .nojekyll _site/
+          cp -r css js assets _site/
+          rm -f _site/js/config.example.js
+          test -f _site/index.html && test -f _site/js/main.js && test -f _site/js/config.js
+          # 防呆：網站檔案裡不可以出現 Secret key（前端只能放 Publishable key）
+          if grep -RInE "sb_secret_[A-Za-z0-9]{8,}" _site; then
+            echo "::error::發現疑似 Supabase Secret key，停止部署"
+            exit 1
+          fi
+          find _site -type f | sort
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

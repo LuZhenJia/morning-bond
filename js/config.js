@@ -7,8 +7,8 @@
 //  兩個欄位留空 → 遊戲以「本機模式」執行（與單檔版相同，只存在瀏覽器）。
 // =====================================================================
 export const CONFIG = Object.freeze({
-  supabaseUrl: '',
-  supabasePublishableKey: '',
+  supabaseUrl: 'https://qflkjbqcygvqmvsqdras.supabase.co',
+  supabasePublishableKey: 'sb_publishable_fO1w-PtZxSB3z8IgJ1cmiw__z_54egM',
 
   // 以下通常不需要修改
   photoBucket: 'player-photos',      // policies.sql 建立的私有 bucket
